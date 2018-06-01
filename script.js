@@ -97,10 +97,6 @@ function tf(objText, searchArr) {
     return tf;
 }
 
-function snip(objText, searchArr) {
-
-}
-
 (function () {
 
     var searchForm = document.querySelector('.searchForm');
@@ -112,14 +108,19 @@ function snip(objText, searchArr) {
 
         var file1 = textInTheFile('file.txt');
         var objText1 = textToObject(file1);
+        objText1.numberFile = 0;
         objText1.title = 'file1';
 
         var file2 = textInTheFile('file2.txt');
         var objText2 = textToObject(file2);
+        objText2.numberFile = 1;
         objText2.title = 'file2';
 
         var file3 = textInTheFile('file3.txt');
         var objText3 = textToObject(file3);
+        objText3.numberFile = 2;
+        console.log("_____");
+        console.log(objText3.numberFile);
         objText3.title = 'file3';
 
         var allFiles = [file1, file2, file3];
@@ -153,18 +154,28 @@ function snip(objText, searchArr) {
                 newResult.innerHTML = allTexts[i].title;
                 result.appendChild(newResult);
 
-                // for (var j = 0; j<searchArr.length; j++) {
-                //     if (searchArr[j] in allTexts[j]) {
-                //         var newResult = document.createElement('p');
-                //
-                //         var index = (allTexts[j].searchArr[j]).index[0];
-                //         console.log(index);
-                //         // var charInFile = index;
-                //         // while (allFiles[i][index].match(/[A-ZА-Я]/)) {
-                //         //
-                //         // }
-                //     }
-                // }
+                for (var j = 0; j<searchArr.length; j++) {
+                    if (searchArr[j] in allTexts[i]) {
+                        var index = (allTexts[i][searchArr[j]].index[0]);
+                        console.log(allTexts[i]);
+                        var number = allTexts[i].numberFile;
+                        console.log(number);
+                        while (allFiles[number][index-1] && (!(allFiles[number][index].match(/[A-ZА-Я.;]/)))) {
+                            index -= 1;
+                        }
+                        var textP = '';
+                        var min = 0;
+                        while (allFiles[number][index] && min < 300 && (!(allFiles[number][index].match(/[.;]/)) || (min < 50))) {
+                            textP += allFiles[number][index];
+                            index += 1;
+                            min ++;
+                        }
+                        var newResultP = document.createElement('p');
+                        newResultP.innerHTML = textP+'...';
+                        result.appendChild(newResultP);
+                        j = searchArr.length;
+                    }
+                }
 
             }
         }
