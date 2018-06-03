@@ -2,6 +2,10 @@ function sortObj(a, b) {
     return b.tfIdf - a.tfIdf;
 }
 
+function sortObjDist(a, b) {
+    return a.dist - b.dist;
+}
+
 function getXmlHttp() {
     var xmlhttp;
     try {
@@ -37,6 +41,7 @@ function textToObject(text) {
     var word = '';
     var i = 0;
     var kol = 0;
+    var ind = 0;
 
     while (text[i]) {
         while (i+1<=text.length && text[i].match(/[a-za-я0-9]/)) {
@@ -47,13 +52,15 @@ function textToObject(text) {
             kol ++;
             if (word in wordList) {
                 wordList[word].num += 1;
-                wordList[word].index.push(i);
+                wordList[word].index.push(ind);
+                ind++;
             }
             else {
                 wordList[word] = {
                     num : 1,
-                    index : [i]
+                    index : [ind]
                 }
+                ind++;
             }
         }
         word = '';
@@ -97,16 +104,81 @@ function tf(objText, searchArr) {
     return tf;
 }
 
+function distance(objText, searchArr) {
+    var trueWordsArr = [];
+    var j = 0;
+    for (var i = 0; i<searchArr.length; i++) {
+        if (searchArr[i] in objText) {
+            trueWordsArr[j] = objText[searchArr[i]].index;
+            j++;
+        }
+    }
+    console.log(trueWordsArr);
+    return trueWordsArr;
+}
+
+function searchTfIdf(allTexts, searchArr) {
+    var kolTrueTexts = 0;
+    for (var i = 0; i < allTexts.length; i++) {
+        allTexts[i].tf = tf(allTexts[i], searchArr);
+        if (allTexts[i].tf > 0) kolTrueTexts++;
+    }
+
+    if (kolTrueTexts > 0) {
+        for (var i = 0; i < allTexts.length; i++) {
+            allTexts[i].idf = (allTexts.length) / (kolTrueTexts);
+            allTexts[i].tfIdf = (allTexts[i].tf) * (allTexts[i].idf);
+        }
+    }
+
+    allTexts.sort(sortObj);
+}
+
+function searchDist(allTexts, searchArr) {
+    for (var i = 0; i < allTexts.length; i++) {
+        allTexts[i].trueWordsArr = distance(allTexts[i], searchArr);
+        console.log("____");
+        console.log(allTexts[i]);
+    }
+
+    var minDist = Infinity;
+    for (var i = 0; i < allTexts.length; i++) { //тексты
+        allTexts[i].dist = 0;
+        for (var j = 0; j < allTexts[i].trueWordsArr.length; j++) { //найденные слова
+            for (var k = 0; k < allTexts[i].trueWordsArr[j].length; k++) { //индексы найденного слова
+                if (allTexts[i].trueWordsArr[j+1]) {
+                    for (var l = 0; l < allTexts[i].trueWordsArr[j + 1].length; l++) { //индексы 2 слова
+                        if (minDist > Math.abs(allTexts[i].trueWordsArr[j][k] - allTexts[i].trueWordsArr[j + 1][l])) {
+                            minDist = Math.abs(allTexts[i].trueWordsArr[j][k] - allTexts[i].trueWordsArr[j + 1][l]);
+                        }
+                    }
+                }
+            }
+            if (minDist != Infinity) {
+                allTexts[i].dist = allTexts[i].dist + minDist;
+            }
+            minDist = Infinity;
+        }
+
+        console.log("____2222");
+        console.log(allTexts[i]);
+
+    }
+    allTexts.sort(sortObjDist);
+}
+
 (function () {
 
     var searchForm = document.querySelector('.searchForm');
-    var searchForm_text = document.querySelector('.searchForm_text');
+    var searchForm_text = document.querySelector('.searchForm__text');
     var result = document.querySelector('.result');
+    var choice1 = document.getElementById('choice1');
+    var choice2 = document.getElementById('choice2');
 
     searchForm.addEventListener('submit', function(evt){
         evt.preventDefault();
 
-        var file1 = textInTheFile('file.txt');
+        var file1 = textInTheFile('file1.txt');
         var objText1 = textToObject(file1);
         objText1.numberFile = 0;
         objText1.title = 'file1';
@@ -130,28 +202,26 @@ function tf(objText, searchArr) {
             result.removeChild(result.firstChild);
         }
 
-        var searchArr = searchToArr(searchForm_text.value)
+        var searchArr = searchToArr(searchForm_text.value);
 
-        var kolTrueTexts = 0;
-        for (var i = 0; i<allTexts.length; i++) {
-            allTexts[i].tf = tf(allTexts[i],searchArr);
-            if (allTexts[i].tf > 0) kolTrueTexts++;
+        if (choice1.checked) {
+            searchTfIdf(allTexts, searchArr);
         }
 
-        if (kolTrueTexts > 0) {
-            for (var i = 0; i < allTexts.length; i++) {
-                allTexts[i].idf = (allTexts.length) / (kolTrueTexts);
-                allTexts[i].tfIdf = (allTexts[i].tf) * (allTexts[i].idf);
+        if (choice2.checked) {
+            if (searchArr.length < 2) {
+                searchTfIdf(allTexts, searchArr);
+            }
+            else {
+                searchDist(allTexts, searchArr);
             }
         }
 
-        allTexts.sort(sortObj);
-
         for (var i = 0; i < allTexts.length; i++) {
 
-            if (allTexts[i].tfIdf > 0) {
+            if (allTexts[i].tfIdf > 0 || allTexts[i].dist) {
                 var newResult = document.createElement('li');
-                newResult.innerHTML = allTexts[i].title;
+                newResult.innerHTML = '<a href="'+allTexts[i].title+'.txt">'+allTexts[i].title+'</a>'
                 result.appendChild(newResult);
 
                 for (var j = 0; j<searchArr.length; j++) {

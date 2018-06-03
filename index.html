@@ -2,14 +2,34 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Поиск</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<form class="searchForm" action="">
-    <input class="searchForm_text" autocomplete="off" autofocus><button>Найти</button>
-</form>
-<ul class="result">
-</ul>
+<div class="main-content">
+    <div class="shadow">
+        <header class="main-content__title">
+            <h1>Лабораторная №4</h1>
+            <p>Выполнил: Новосельцев Максим</p>
+        </header>
+        <section class="head-search">
+            <form class="searchForm" action="">
+                <input class="searchForm__text" autocomplete="off" autofocus><button class="searchForm__button">Найти</button>
+            </form>
+            <div class="head-search__choice">
+                <input type="radio" id="choice1"
+                       name="Choice" value="TF*IDF" checked>
+                <label for="choice1">TF*IDF</label>
+
+                <input type="radio" id="choice2"
+                       name="Choice" value="Расстояние">
+                <label for="choice2">Расстояние</label>
+            </div>
+        </section>
+    </div>
+    <ul class="result">
+    </ul>
+</div>
 </body>
 <script src="script.js"></script>
 </html>
